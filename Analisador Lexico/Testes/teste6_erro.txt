@@ -1,0 +1,5 @@
+inicio
+    a = 0;
+    b = "abc;
+    a = b * 0.1;
+fim

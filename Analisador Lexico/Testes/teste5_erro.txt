@@ -1,0 +1,5 @@
+inicio
+    int a;
+    --abcd
+fim
+--[[

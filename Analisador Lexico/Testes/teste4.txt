@@ -1,0 +1,10 @@
+inicio
+  int produto_id154165465465444444444;
+  produto_id154165465465444444444 = 404;
+  
+  -- O simbolo @ e invalido
+  string email;
+  email = "usuario@exemplo.com";
+  
+  print(produto_id154165465465444444444);
+fim

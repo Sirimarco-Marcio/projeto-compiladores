@@ -1,0 +1,8 @@
+inicio
+  string nome;
+  string saudacao;
+  nome = "mundo";
+  saudacao = "Ola, ";
+  print(saudacao);
+  print(nome);
+fim

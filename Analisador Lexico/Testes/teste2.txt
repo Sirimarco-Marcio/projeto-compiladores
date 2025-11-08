@@ -1,0 +1,7 @@
+inicio
+  float salario;
+  float bonus;
+  salario = 2500.50;
+  bonus = salario * 0.1;
+  print(salario + bonus);
+fim
