@@ -1,47 +1,9 @@
+#include "analisador_lexico.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
-
-
-//TOKENS
-#define TOKEN_BASE 256
-
-#define TOKEN_IDENTIFICADOR    (TOKEN_BASE + 1)
-#define TOKEN_NUMERO           (TOKEN_BASE + 2)
-#define TOKEN_STRING           (TOKEN_BASE + 3)
-
-//Token para palavras chave
-#define TOKEN_INICIO           (TOKEN_BASE + 4)
-#define TOKEN_FIM              (TOKEN_BASE + 5)
-#define TOKEN_IF               (TOKEN_BASE + 6)
-#define TOKEN_ELSE             (TOKEN_BASE + 7)
-#define TOKEN_WHILE            (TOKEN_BASE + 8)
-#define TOKEN_READ             (TOKEN_BASE + 9)
-#define TOKEN_PRINT            (TOKEN_BASE + 10)
-
-//Variaveis
-#define TOKEN_TIPO_STRING      (TOKEN_BASE + 11)
-#define TOKEN_TIPO_INT         (TOKEN_BASE + 12)
-#define TOKEN_TIPO_FLOAT       (TOKEN_BASE + 13)
-
-//Operadores, pontuacao valor do ASCII como valor de token
-#define TOKEN_ATRIBUICAO       '='
-#define TOKEN_OPERADOR_SOMA    '+'
-#define TOKEN_OPERADOR_SUB     '-'
-#define TOKEN_OPERADOR_MUL     '*'
-#define TOKEN_OPERADOR_DIV     '/'
-#define TOKEN_PONTO_VIRGULA    ';'
-#define TOKEN_VIRGULA          ','
-#define TOKEN_ABRE_PARENTESES  '('
-#define TOKEN_FECHA_PARENTESES ')'
-#define TOKEN_ABRE_CHAVES      '{'
-#define TOKEN_FECHA_CHAVES     '}'
-
-//Tokens para fim de loops
-#define TOKEN_EOF              (TOKEN_BASE + 14)
-#define TOKEN_ERRO             (TOKEN_BASE + 15)
 
 //Estados
 #define STATE_INICIAL          0
@@ -50,57 +12,11 @@
 #define STATE_EM_COMENTARIO    3
 #define STATE_EM_STRING        4
 
-
-typedef struct
-{
-    int nome_token;
-    union
-    {
-        int pos_simbolo;
-        char valor_literal[1024];
-    } atributo;
-} Token;
-
-
-#define MAX_ID_LEN 32
-#define INCREMENTO_TABELA 32 //Quantos novos espaços alocar quando a tabela encher
-
-typedef struct 
-{
-    char lexema[MAX_ID_LEN + 1];
-} Simbolo;
-
 Simbolo* tabela_de_simbolos = NULL; 
 int tamanho_tabela = 0;             
 int capacidade_tabela = 0;          
 
-typedef struct
-{
-    const char* fonte;
-    int posicao;
-    char atual;
-} AnalisadorLexico;
-
 AnalisadorLexico g_lexer;
-
-
-
-void avancar();
-char* ler_arquivo_fonte(const char* caminho);
-Token get_token(void);
-int instalar_id(const char* lexema);
-void imprimir_token(Token token);
-char peek(void);
-
-
-//Mapa de palavras chave 
-//"Dicionario"
-typedef struct
-{
-    const char* nome;
-    int token;
-} PalavraChave;
-
 
 PalavraChave palavras_chave[] = 
 {
@@ -117,6 +33,11 @@ PalavraChave palavras_chave[] =
     {NULL, 0}
 };
 
+
+void avancar();
+Token get_token(void);
+int instalar_id(const char* lexema);
+char peek(void);
 
 //check ✓
 int instalar_id(const char* lexema)
@@ -150,10 +71,23 @@ int instalar_id(const char* lexema)
     return tamanho_tabela++;
 }
 
+void devolver_token(Token token) {
+    if (g_lexer.tem_token_devolvido) {
+        printf("ERRO: Já existe um token devolvido!\n");
+        return;
+    }
+    g_lexer.token_devolvido = token;
+    g_lexer.tem_token_devolvido = 1;
+}
 
 //check ✓
-Token get_token(void) 
-{
+Token get_token(void) {
+    // Se tem token devolvido, retorna ele
+    if (g_lexer.tem_token_devolvido) {
+        g_lexer.tem_token_devolvido = 0;
+        return g_lexer.token_devolvido;
+    }
+
     int estado = STATE_INICIAL;
     char lexeme_buffer[1024];
     int lexeme_pos = 0;
@@ -171,6 +105,9 @@ Token get_token(void)
                     avancar();
                     continue; 
                 }
+
+                token.linha = g_lexer.linha;
+                token.coluna = g_lexer.coluna;
 
                 if(c == '\0')
                 { 
@@ -361,51 +298,51 @@ Token get_token(void)
     }
 }
 
-//check ✓
-int main(int argc, char* argv[])
-{
-    if(argc < 2)
-    {
-        fprintf(stderr, "Uso: %s <arquivo_fonte.txt>\n", argv[0]); 
-        return 1; 
-    }
+// //check ✓
+// int main(int argc, char* argv[])
+// {
+//     if(argc < 2)
+//     {
+//         fprintf(stderr, "Uso: %s <arquivo_fonte.txt>\n", argv[0]); 
+//         return 1; 
+//     }
 
-    char* codigo_fonte = ler_arquivo_fonte(argv[1]);
+//     char* codigo_fonte = ler_arquivo_fonte(argv[1]);
 
-    if(codigo_fonte == NULL) 
-    {
-        return 1;
-    }
+//     if(codigo_fonte == NULL) 
+//     {
+//         return 1;
+//     }
 
-    g_lexer.fonte = codigo_fonte;
-    g_lexer.posicao = 0;
-    g_lexer.atual = codigo_fonte[0];
+//     g_lexer.fonte = codigo_fonte;
+//     g_lexer.posicao = 0;
+//     g_lexer.atual = codigo_fonte[0];
 
-    while(1)
-    {
-        Token token = get_token();
-        imprimir_token(token);
+//     while(1)
+//     {
+//         Token token = get_token();
+//         imprimir_token(token);
 
-        if(token.nome_token == TOKEN_EOF || token.nome_token == TOKEN_ERRO)
-        {
-            break;
-        }
-    }
+//         if(token.nome_token == TOKEN_EOF || token.nome_token == TOKEN_ERRO)
+//         {
+//             break;
+//         }
+//     }
 
-    printf("\n\n--- Tabela de Símbolos ---\n");
-    printf("Índice  | Lexema\n");
-    printf("---------------------------\n");
-    for(int i = 0; i < tamanho_tabela; i++)
-    {
-        printf("%-7d | %s\n", i, tabela_de_simbolos[i].lexema);
-    }
-    printf("---------------------------\n");
+//     printf("\n\n--- Tabela de Símbolos ---\n");
+//     printf("Índice  | Lexema\n");
+//     printf("---------------------------\n");
+//     for(int i = 0; i < tamanho_tabela; i++)
+//     {
+//         printf("%-7d | %s\n", i, tabela_de_simbolos[i].lexema);
+//     }
+//     printf("---------------------------\n");
 
-    free(codigo_fonte);
-    free(tabela_de_simbolos);
+//     free(codigo_fonte);
+//     free(tabela_de_simbolos);
     
-    return 0;
-}
+//     return 0;
+// }
 
 //check ✓
 void imprimir_token(Token token) 
@@ -449,6 +386,13 @@ void imprimir_token(Token token)
 //check ✓
 void avancar() 
 {
+    if (g_lexer.atual == '\n') 
+    {
+        g_lexer.linha++;
+        g_lexer.coluna = 1;
+    } else {
+        g_lexer.coluna++;
+    }
     g_lexer.posicao++;
     g_lexer.atual = (g_lexer.posicao >= strlen(g_lexer.fonte)) ? '\0' : g_lexer.fonte[g_lexer.posicao];
 }
@@ -487,4 +431,34 @@ char peek()
     }
 
     return g_lexer.fonte[g_lexer.posicao + 1];
+}
+
+// Encontra a linha específica no código-fonte e a imprime
+void imprimir_linha_erro(const char* fonte_completa, int linha_num, int coluna_num) {
+    const char* p = fonte_completa;
+    int linha_atual = 1;
+
+    // 1. Avança até a linha do erro
+    while (linha_atual < linha_num && *p != '\0') {
+        if (*p == '\n') {
+            linha_atual++;
+        }
+        p++;
+    }
+
+    // 2. Imprime a linha do erro
+    printf("\nErro linha %d, coluna %d:\n", linha_num, coluna_num);
+    printf("  > ");
+    while (*p != '\n' && *p != '\0') {
+        printf("%c", *p);
+        p++;
+    }
+    printf("\n");
+
+    // 3. Imprime a seta (^)
+    printf("    "); // Espaço para " > "
+    for (int i = 1; i < coluna_num; i++) {
+        printf(" "); // Avança espaços até a coluna do erro
+    }
+    printf("^\n");
 }
