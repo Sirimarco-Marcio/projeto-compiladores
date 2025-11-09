@@ -60,7 +60,7 @@ static void consumir(int token_esperado, int follow_set[], int size) {
 // ---------------------------
 
 void erro_sintatico(const char* mensagem, int follow_set[], int size) {
-    // 1. Relatar o erro (usando a nova função)
+    // Relatar o erro (usando a nova função)
     imprimir_linha_erro(g_lexer.fonte, token_atual.linha, token_atual.coluna);
     printf("ERRO SINTÁTICO: %s.\n", mensagem);
     printf("  Token recebido: %d (Inesperado)\n", token_atual.nome_token);
@@ -68,10 +68,16 @@ void erro_sintatico(const char* mensagem, int follow_set[], int size) {
     // Marca que houve um erro para o 'analisar' saber
     houve_erro_sintatico = true;
 
-    // 2. Modo Pânico (Sincronização)
+    // Modo Pânico (Sincronização)
     printf("  Iniciando modo pânico... Sincronizando com { ");
     for(int i=0; i<size; i++) printf("%d ", follow_set[i]);
     printf("}\n");
+
+    // Descarta o token que causou o erro ANTES de tentar sincronizar.
+    // Isso é crucial para evitar o loop infinito se o token atual
+    // também estiver no conjunto follow.
+    token_atual = get_token();
+
 
     while (token_atual.nome_token != TOKEN_EOF) {
         

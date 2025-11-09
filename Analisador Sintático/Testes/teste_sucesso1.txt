@@ -1,0 +1,26 @@
+inicio
+  -- Arquivo de teste de sucesso
+  
+  int a;
+  float b;
+  string msg;
+  
+  read(a);
+  b = (a * 10.5) / 2;
+  
+  if (a) {
+    msg = "Contador e maior que zero";
+  } else {
+    msg = "Contador e zero ou negativo";
+  }
+  
+  while (a) {
+    print(a);
+    a = a - 1;
+    print(b);
+  }
+  
+  print("Fim do loop");
+  print(msg);
+  
+fim

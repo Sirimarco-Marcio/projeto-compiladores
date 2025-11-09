@@ -1,0 +1,16 @@
+inicio
+  -- Teste de erros sintaticos (atribuicao, ID, bloco)
+  
+  int a;
+  int b;
+  
+  a = ;  -- Erro 1: Expressao faltando apos a atribuicao
+  
+  b 10;  -- Erro 2: Esperava '=' ou '(' depois do ID
+  
+  {
+    print("bloco incompleto");
+  
+  -- Erro 3: Falta '}' para fechar o bloco
+  
+fim

@@ -1,0 +1,17 @@
+inicio
+  -- Arquivo de teste com erros sintaticos
+  
+  int contador -- Erro 1: Falta ;
+  
+  float total;
+  
+  -- Erro 2: Falta ')' no 'while'
+  while (contador > 0 {
+    total = total + contador;
+    contador = contador - 1;
+  }
+  
+  -- Erro 3: 'print' sem ';' no final
+  print(total)
+
+fim
