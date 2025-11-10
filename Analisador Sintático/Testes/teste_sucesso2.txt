@@ -1,0 +1,18 @@
+inicio
+  -- Teste de sucesso 2
+  -- Foco em expressoes negativas e if sem else
+  
+  int x;
+  int y;
+  
+  x = -10;  -- Testa o factor: - <factor>
+  y = x * (2 + -5); -- Testa expressao aninhada com negativo
+  
+  if (y)
+    print("y nao e zero");
+  
+  -- Testa chamada de funcao com args vazio
+  -- (Sintaticamente valido, embora semanticamente possa nao ser)
+  x(); 
+  
+fim
