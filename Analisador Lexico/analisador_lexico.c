@@ -12,8 +12,11 @@
 #define STATE_EM_COMENTARIO    3
 #define STATE_EM_STRING        4
 
+// --- MUDANÇA SEMÂNTICA ---
+// Definidas aqui, mas não são 'static' pois são 'extern' no .h
 Simbolo* tabela_de_simbolos = NULL; 
 int tamanho_tabela = 0;             
+// --- FIM DA MUDANÇA ---
 int capacidade_tabela = 0;          
 
 AnalisadorLexico g_lexer;
@@ -36,7 +39,7 @@ PalavraChave palavras_chave[] =
 
 void avancar();
 Token get_token(void);
-int instalar_id(const char* lexema);
+// int instalar_id(const char* lexema); // Definição está abaixo
 char peek(void);
 
 //check ✓
@@ -62,12 +65,19 @@ int instalar_id(const char* lexema)
 
         tabela_de_simbolos = nova_tabela;
         capacidade_tabela = nova_capacidade;
-        //printf("\n[INFO: Tabela de símbolos realocada para %d posições]\n", capacidade_tabela);
     }
     
     //Insere o novo símbolo na primeira posição livre
     strncpy(tabela_de_simbolos[tamanho_tabela].lexema, lexema, MAX_ID_LEN);
     tabela_de_simbolos[tamanho_tabela].lexema[MAX_ID_LEN] = '\0';
+    
+    // --- MUDANÇA SEMÂNTICA: Inicializa os campos ---
+    tabela_de_simbolos[tamanho_tabela].categoria = 0; 
+    tabela_de_simbolos[tamanho_tabela].tipo_dado = 0; 
+    tabela_de_simbolos[tamanho_tabela].tipo_parametro = 0;
+    tabela_de_simbolos[tamanho_tabela].linha_declaracao = 0; // 0 = ainda não declarado
+    // --- FIM DA MUDANÇA ---
+
     return tamanho_tabela++;
 }
 

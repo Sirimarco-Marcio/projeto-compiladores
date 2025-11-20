@@ -41,8 +41,24 @@
 #define TOKEN_EOF              (TOKEN_BASE + 14)
 #define TOKEN_ERRO             (TOKEN_BASE + 15)
 
+// --- INICIO DAS MUDANÇAS SEMÂNTICAS (BÔNUS) ---
+
+// Constantes de Tipo (Reutilizando tokens)
+#define TIPO_INT           (TOKEN_TIPO_INT)
+#define TIPO_FLOAT         (TOKEN_TIPO_FLOAT)
+#define TIPO_STRING        (TOKEN_TIPO_STRING)
+#define TIPO_VAZIO         (TOKEN_BASE + 16)
+#define TIPO_ERRO          (TOKEN_BASE + 17) // Para propagar erros de tipo
+#define TIPO_QUALQUER      (TOKEN_BASE + 18) // Para 'print'
+
+// Categorias de Símbolos
+#define CAT_VARIAVEL       (TOKEN_BASE + 19)
+#define CAT_FUNCAO         (TOKEN_BASE + 20)
+
+// --- FIM DAS MUDANÇAS SEMÂNTICAS ---
+
 #define MAX_ID_LEN 32
-#define INCREMENTO_TABELA 32 //Quantos novos espaços alocar quando a tabela encher
+#define INCREMENTO_TABELA 32
 
 // --- 2. ESTRUTURAS DE DADOS PÚBLICAS ---
 
@@ -69,13 +85,17 @@ typedef struct
     int tem_token_devolvido; 
 } AnalisadorLexico;
 
+// --- MUDANÇA SEMÂNTICA (Requisito B1) ---
 typedef struct 
 {
     char lexema[MAX_ID_LEN + 1];
+    int categoria; // CAT_VARIAVEL, CAT_FUNCAO
+    int tipo_dado; // TIPO_INT, TIPO_FLOAT, TIPO_STRING, TIPO_VAZIO
+    int tipo_parametro; // O tipo que a função espera (para read/print)
+    int linha_declaracao; // Para erro de redeclaração
 } Simbolo;
+// --- FIM DA MUDANÇA ---
 
-//Mapa de palavras chave 
-//"Dicionario"
 typedef struct
 {
     const char* nome;
@@ -84,6 +104,8 @@ typedef struct
 
 // --- 3. VARIÁVEIS GLOBAIS (EXTERN) ---
 extern AnalisadorLexico g_lexer;
+extern Simbolo* tabela_de_simbolos; // <-- MUDANÇA: Exposto para o Sintático
+extern int tamanho_tabela;         // <-- MUDANÇA: Exposto para o Sintático
 
 
 // --- 4. PROTÓTIPOS DE FUNÇÕES PÚBLICAS ---
@@ -92,5 +114,8 @@ char* ler_arquivo_fonte(const char* caminho);
 void imprimir_linha_erro(const char* fonte_completa, int linha_num, int coluna_num);
 void imprimir_token(Token token);
 void devolver_token(Token token);
+
+// Protótipo da Tabela de Símbolos (agora usada pelo Sintático)
+int instalar_id(const char* lexema);
 
 #endif
