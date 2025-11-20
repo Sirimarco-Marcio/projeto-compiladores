@@ -5,6 +5,9 @@
 #include "Analisador Lexico/analisador_lexico.h"
 #include "Analisador Sintático/analisador_sintatico.h"
 
+// (Bônus) Deve ser declarado aqui para que o main possa liberar
+extern Simbolo* tabela_de_simbolos; 
+
 int main(int argc, char* argv[])
 {
     if (argc < 2)
@@ -22,18 +25,18 @@ int main(int argc, char* argv[])
     // 2. Chamar a análise (toda a mágica está aqui)
     bool sucesso = analisar(codigo_fonte);
 
-    // 3. Reportar o resultado
+    // 3. Reportar o resultado (Bônus)
     if (sucesso) {
-        printf("\n[SUCESSO] Análise Sintática concluída.\n");
+        printf("\n[SUCESSO] Análise Sintática e Semântica concluídas.\n");
     } else {
-        fprintf(stderr, "\n[FALHA] Análise Sintática encontrou erros.\n");
+        fprintf(stderr, "\n[FALHA] Análise encontrou erros.\n");
     }
 
     // 4. Limpar
     free(codigo_fonte);
     
-    // (Lembre-se de liberar a tabela de símbolos aqui)
-    // free(tabela_de_simbolos); // Você precisará expô-la no .h do léxico
+    // (Bônus) Liberar a tabela de símbolos
+    free(tabela_de_simbolos); 
 
     return (sucesso ? 0 : 1); // Retorna 0 em sucesso, 1 em erro
 }

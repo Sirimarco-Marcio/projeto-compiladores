@@ -1,0 +1,11 @@
+inicio
+  int x;
+  int z;
+  
+  x = y; -- ERRO SEMÂNTICO (1)
+  
+  z = 10.5; -- ERRO SEMÂNTICO (2)
+  
+  print(w); -- ERRO SEMÂNTICO (3)
+  
+fim
