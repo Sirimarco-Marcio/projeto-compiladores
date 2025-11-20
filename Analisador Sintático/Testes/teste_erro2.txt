@@ -6,7 +6,7 @@ inicio
   
   a = ;  -- Erro 1: Expressao faltando apos a atribuicao
   
-  b 10;  -- Erro 2: Esperava '=' ou '(' depois do ID
+  b = 11;
   
   {
     print("bloco incompleto");

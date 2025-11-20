@@ -45,60 +45,73 @@ static int in(int token, int set[], int size) {
     return 0;
 }
 
-// --- DEFINIÇÃO ATUALIZADA ---
-// A função agora passa o 'follow_set' e 'size' para o erro_sintatico
+
+// continua sendo estática lá em cima
 static void consumir(int token_esperado, int follow_set[], int size) {
+    // caso normal: bateu o token esperado, só consome
     if (token_atual.nome_token == token_esperado) {
         token_atual = get_token();
-    } else {
-        char msg[100];
-        sprintf(msg, "Esperava token %d", token_esperado);
-        // Passa o contexto do chamador diretamente para o erro
-        erro_sintatico(msg, follow_set, size);
+        return;
     }
+
+    // 1) Caso de INSERÇÃO de token:
+    //    o token atual já é um dos possíveis "seguidores"
+    //    => assumimos que o token esperado está faltando.
+    if (in(token_atual.nome_token, follow_set, size)) {
+        imprimir_linha_erro(g_lexer.fonte, token_atual.linha, token_atual.coluna);
+        printf("ERRO SINTÁTICO: esperado token %d antes do token %d (recuperação por inserção).\n",
+               token_esperado, token_atual.nome_token);
+        houve_erro_sintatico = true;
+
+        // MUITO IMPORTANTE: NÃO consome token_atual.
+        // Apenas "finge" que o token_esperado existia no input.
+        return;
+    }
+
+    // 2) Caso de modo pânico de verdade:
+    //    nem é o esperado, nem é algo que poderia vir depois.
+    //    Chamamos o erro_sintatico para descartar tokens.
+    char msg[100];
+    sprintf(msg, "Esperava token %d", token_esperado);
+    erro_sintatico(msg, follow_set, size);
 }
+
 // ---------------------------
 
-void erro_sintatico(const char* mensagem, int follow_set[], int size) {
-    // Relatar o erro (usando a nova função)
+static void erro_sintatico(const char* mensagem, int follow_set[], int size) {
     imprimir_linha_erro(g_lexer.fonte, token_atual.linha, token_atual.coluna);
     printf("ERRO SINTÁTICO: %s.\n", mensagem);
-    printf("  Token recebido: %d (Inesperado)\n", token_atual.nome_token);
+    printf("  Token recebido: %d (inesperado)\n", token_atual.nome_token);
 
-    // Marca que houve um erro para o 'analisar' saber
     houve_erro_sintatico = true;
 
-    // Modo Pânico (Sincronização)
+    // se já estamos no EOF, não há o que sincronizar
+    if (token_atual.nome_token == TOKEN_EOF) {
+        printf("  Fim de arquivo atingido durante recuperação.\n");
+        return;
+    }
+
     printf("  Iniciando modo pânico... Sincronizando com { ");
-    for(int i=0; i<size; i++) printf("%d ", follow_set[i]);
+    for (int i = 0; i < size; i++) printf("%d ", follow_set[i]);
     printf("}\n");
 
-    // Descarta o token que causou o erro ANTES de tentar sincronizar.
-    // Isso é crucial para evitar o loop infinito se o token atual
-    // também estiver no conjunto follow.
+    // DESCARTA pelo menos um token para não travar em loop
     token_atual = get_token();
 
+    // agora joga fora até achar um de sincronização ou EOF
+    while (token_atual.nome_token != TOKEN_EOF &&
+           !in(token_atual.nome_token, follow_set, size)) {
+        token_atual = get_token();
+    }
 
-    while (token_atual.nome_token != TOKEN_EOF) {
-        
-        // Verifica se o token atual está no follow_set
-        bool encontrado = false;
-        for (int i = 0; i < size; i++) {
-            if (token_atual.nome_token == follow_set[i]) {
-                encontrado = true;
-                break;
-            }
-        }
-
-        if (encontrado) {
-            printf("  Sincronização encontrada. Continuando análise no token %d.\n", token_atual.nome_token);
-            return; // Encontrou um "ponto seguro", retorna!
-        }
-
-        // Descarta o token atual e pega o próximo
-        token_atual = get_token(); 
+    if (token_atual.nome_token != TOKEN_EOF) {
+        printf("  Sincronização encontrada. Continuando análise no token %d.\n",
+               token_atual.nome_token);
+    } else {
+        printf("  Fim de arquivo alcançado durante recuperação.\n");
     }
 }
+
 
 bool analisar(const char* codigo_fonte) 
 {
