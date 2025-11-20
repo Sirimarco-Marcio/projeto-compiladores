@@ -1,0 +1,20 @@
+inicio
+  int var_int;
+  float var_float;
+  
+  int var_int; -- ERRO TIPO 2: Redeclaracao
+
+  var_float = 1.5;
+  
+  -- ERRO TIPO 4: Atribuicao float -> int
+  var_int = var_float; 
+  
+  -- ERRO TIPO 1: Nao declarada
+  var_int = var_nao_declarada; 
+  
+  -- ERRO TIPO 3: Parametro invalido
+  read(var_float); -- (ok)
+  read(var_int);   -- (ok)
+  read(var_nao_declarada); -- ERRO TIPO 1 (de novo) e TIPO 3
+  
+fim

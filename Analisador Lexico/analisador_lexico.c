@@ -5,19 +5,21 @@
 #include <errno.h>
 #include <ctype.h>
 
-//Estados
+/* estados do AFD */
 #define STATE_INICIAL          0
 #define STATE_EM_IDENTIFICADOR 1
 #define STATE_EM_NUMERO        2
 #define STATE_EM_COMENTARIO    3
 #define STATE_EM_STRING        4
 
-Simbolo* tabela_de_simbolos = NULL; 
-int tamanho_tabela = 0;             
-int capacidade_tabela = 0;          
+/* tabela de símbolos (global) */
+Simbolo* tabela_de_simbolos = NULL;
+int tamanho_tabela = 0;
+int capacidade_tabela = 0;
 
 AnalisadorLexico g_lexer;
 
+/* palavras-chave */
 PalavraChave palavras_chave[] = 
 {
     {"inicio", TOKEN_INICIO},
@@ -33,16 +35,16 @@ PalavraChave palavras_chave[] =
     {NULL, 0}
 };
 
-
 void avancar();
 Token get_token(void);
 int instalar_id(const char* lexema);
 char peek(void);
 
-//check ✓
+/* ================== TABELA DE SÍMBOLOS ================== */
+
 int instalar_id(const char* lexema)
 {
-    // Busca se o ID já existe
+    /* verifica se já existe */
     for(int i = 0; i < tamanho_tabela; i++) 
     {
         if(strcmp(tabela_de_simbolos[i].lexema, lexema) == 0) return i;
@@ -51,9 +53,8 @@ int instalar_id(const char* lexema)
     if(tamanho_tabela >= capacidade_tabela) 
     {
         int nova_capacidade = capacidade_tabela + INCREMENTO_TABELA;
-        
-        Simbolo* nova_tabela = (Simbolo*) realloc(tabela_de_simbolos, nova_capacidade * sizeof(Simbolo));
-
+        Simbolo* nova_tabela = (Simbolo*) realloc(tabela_de_simbolos,
+                                                  nova_capacidade * sizeof(Simbolo));
         if(nova_tabela == NULL)
         {
             printf("ERRO FATAL: Falha ao realocar a tabela de símbolos!\n");
@@ -61,13 +62,15 @@ int instalar_id(const char* lexema)
         }
 
         tabela_de_simbolos = nova_tabela;
-        capacidade_tabela = nova_capacidade;
-        //printf("\n[INFO: Tabela de símbolos realocada para %d posições]\n", capacidade_tabela);
+        capacidade_tabela  = nova_capacidade;
     }
     
-    //Insere o novo símbolo na primeira posição livre
+    /* insere o novo símbolo */
     strncpy(tabela_de_simbolos[tamanho_tabela].lexema, lexema, MAX_ID_LEN);
     tabela_de_simbolos[tamanho_tabela].lexema[MAX_ID_LEN] = '\0';
+    tabela_de_simbolos[tamanho_tabela].categoria = CAT_VARIAVEL;
+    tabela_de_simbolos[tamanho_tabela].tipo      = TIPO_INDEFINIDO;
+
     return tamanho_tabela++;
 }
 
@@ -80,9 +83,9 @@ void devolver_token(Token token) {
     g_lexer.tem_token_devolvido = 1;
 }
 
-//check ✓
+/* ================== LÉXICO ================== */
+
 Token get_token(void) {
-    // Se tem token devolvido, retorna ele
     if (g_lexer.tem_token_devolvido) {
         g_lexer.tem_token_devolvido = 0;
         return g_lexer.token_devolvido;
@@ -157,20 +160,16 @@ Token get_token(void) {
                 avancar();
                 return token;
 
-           
             case STATE_EM_IDENTIFICADOR:
-
                 if(isalnum(g_lexer.atual) || g_lexer.atual == '_')
                 {
-                    //Continua lendo o ID para o buffer temporário,
-                    //limite do buffer
                     if(lexeme_pos < 1023) 
                     {
                         lexeme_buffer[lexeme_pos++] = g_lexer.atual;
                     }
                     avancar();
-
-                } else
+                } 
+                else
                 {
                     lexeme_buffer[lexeme_pos] = '\0';
 
@@ -178,7 +177,8 @@ Token get_token(void) {
                     {
                         token.nome_token = TOKEN_ERRO;
                         char msg_erro[256];
-                        sprintf(msg_erro, "ID excede o limite de %d caracteres: %.35s...", MAX_ID_LEN, lexeme_buffer);
+                        sprintf(msg_erro, "ID excede o limite de %d caracteres: %.35s...",
+                                MAX_ID_LEN, lexeme_buffer);
                         strcpy(token.atributo.valor_literal, msg_erro);
                         return token;
                     }
@@ -204,12 +204,12 @@ Token get_token(void) {
                 break;
 
             case STATE_EM_NUMERO:
-
                 if(isdigit(g_lexer.atual) || g_lexer.atual == '.') 
                 {
                     lexeme_buffer[lexeme_pos++] = g_lexer.atual;
                     avancar();
-                } else
+                } 
+                else
                 {
                     lexeme_buffer[lexeme_pos] = '\0';
                     token.nome_token = TOKEN_NUMERO;
@@ -226,7 +226,8 @@ Token get_token(void) {
                     lexeme_buffer[lexeme_pos] = '\0';
                     char msg_erro[256];
                     
-                    sprintf(msg_erro, "String nao finalizada antes do fim do arquivo: \"%.35s", lexeme_buffer);
+                    sprintf(msg_erro, "String nao finalizada antes do fim do arquivo: \"%.35s",
+                            lexeme_buffer);
                     strcpy(token.atributo.valor_literal, msg_erro);
 
                     return token;
@@ -247,21 +248,20 @@ Token get_token(void) {
                 }
 
                 avancar();
-
                 break;
 
             case STATE_EM_COMENTARIO:
-
                 avancar();
                 avancar();
 
-                // Comentário longo
+                /* comentário longo */
                 if(g_lexer.atual == '[' && peek() == '[') 
                 {
                     avancar();
                     avancar();
 
-                    while(g_lexer.atual != '\0' && !(g_lexer.atual == ']' && peek() == ']')) 
+                    while(g_lexer.atual != '\0' &&
+                         !(g_lexer.atual == ']' && peek() == ']')) 
                     {
                         avancar();
                     }
@@ -269,11 +269,9 @@ Token get_token(void) {
                     if(g_lexer.atual == '\0') 
                     {
                         token.nome_token = TOKEN_ERRO;
-
                         char msg_erro[256];
                         sprintf(msg_erro, "Comentario longo nao finalizado antes do fim do arquivo");
                         strcpy(token.atributo.valor_literal, msg_erro);
-
                         return token;
                     } 
                     else
@@ -282,9 +280,9 @@ Token get_token(void) {
                         avancar();
                     }
                 } 
-                // Comentário curto
                 else
                 {
+                    /* comentário curto até o fim da linha */
                     while(g_lexer.atual != '\n' && g_lexer.atual != '\0') 
                     {
                         avancar(); 
@@ -293,58 +291,10 @@ Token get_token(void) {
 
                 estado = STATE_INICIAL;
                 continue;
-                
         }
     }
 }
 
-// //check ✓
-// int main(int argc, char* argv[])
-// {
-//     if(argc < 2)
-//     {
-//         fprintf(stderr, "Uso: %s <arquivo_fonte.txt>\n", argv[0]); 
-//         return 1; 
-//     }
-
-//     char* codigo_fonte = ler_arquivo_fonte(argv[1]);
-
-//     if(codigo_fonte == NULL) 
-//     {
-//         return 1;
-//     }
-
-//     g_lexer.fonte = codigo_fonte;
-//     g_lexer.posicao = 0;
-//     g_lexer.atual = codigo_fonte[0];
-
-//     while(1)
-//     {
-//         Token token = get_token();
-//         imprimir_token(token);
-
-//         if(token.nome_token == TOKEN_EOF || token.nome_token == TOKEN_ERRO)
-//         {
-//             break;
-//         }
-//     }
-
-//     printf("\n\n--- Tabela de Símbolos ---\n");
-//     printf("Índice  | Lexema\n");
-//     printf("---------------------------\n");
-//     for(int i = 0; i < tamanho_tabela; i++)
-//     {
-//         printf("%-7d | %s\n", i, tabela_de_simbolos[i].lexema);
-//     }
-//     printf("---------------------------\n");
-
-//     free(codigo_fonte);
-//     free(tabela_de_simbolos);
-    
-//     return 0;
-// }
-
-//check ✓
 void imprimir_token(Token token) 
 {
     switch(token.nome_token) 
@@ -374,16 +324,14 @@ void imprimir_token(Token token)
         case TOKEN_ABRE_CHAVES:      printf("<ABRE_CHAVES, >\n"); break;
         case TOKEN_FECHA_CHAVES:     printf("<FECHA_CHAVES, >\n"); break;
         case TOKEN_EOF:           printf("<EOF, >\n"); break;
-        case TOKEN_ERRO:          printf("<ERRO, Caractere '%s' inválido>\n", token.atributo.valor_literal); break;
-
+        case TOKEN_ERRO:          printf("<ERRO, Caractere '%s' inválido>\n",
+                                         token.atributo.valor_literal); break;
         default:
             printf("<DESCONHECIDO, %d>\n", token.nome_token); 
         break;
     }
 }
 
-
-//check ✓
 void avancar() 
 {
     if (g_lexer.atual == '\n') 
@@ -394,27 +342,30 @@ void avancar()
         g_lexer.coluna++;
     }
     g_lexer.posicao++;
-    g_lexer.atual = (g_lexer.posicao >= strlen(g_lexer.fonte)) ? '\0' : g_lexer.fonte[g_lexer.posicao];
+    g_lexer.atual = (g_lexer.posicao >= (int)strlen(g_lexer.fonte))
+                    ? '\0'
+                    : g_lexer.fonte[g_lexer.posicao];
 }
 
-
-//check ✓
 char* ler_arquivo_fonte(const char* caminho)
 {
-
     FILE* arquivo = fopen(caminho, "r");
     if(!arquivo)
     {
-        fprintf(stderr, "ERRO: nao foi possivel abrir o arquivo '%s'.\n", caminho); return NULL; 
+        fprintf(stderr, "ERRO: nao foi possivel abrir o arquivo '%s'.\n", caminho);
+        return NULL; 
     }
 
-    fseek(arquivo, 0, SEEK_END); long tamanho = ftell(arquivo);
+    fseek(arquivo, 0, SEEK_END);
+    long tamanho = ftell(arquivo);
     fseek(arquivo, 0, SEEK_SET);
 
     char* buffer = (char*)malloc(tamanho + 1);
     if(!buffer)
     {
-        fprintf(stderr, "ERRO: nao foi possivel alocar memoria.\n"); fclose(arquivo); return NULL; 
+        fprintf(stderr, "ERRO: nao foi possivel alocar memoria.\n");
+        fclose(arquivo);
+        return NULL; 
     }
 
     size_t bytes_lidos = fread(buffer, 1, tamanho, arquivo);
@@ -425,20 +376,19 @@ char* ler_arquivo_fonte(const char* caminho)
 
 char peek() 
 {
-    if(g_lexer.posicao + 1 >= strlen(g_lexer.fonte))
+    if(g_lexer.posicao + 1 >= (int)strlen(g_lexer.fonte))
     {
         return '\0';
     }
-
     return g_lexer.fonte[g_lexer.posicao + 1];
 }
 
-// Encontra a linha específica no código-fonte e a imprime
+/* impressão de linha de erro */
+
 void imprimir_linha_erro(const char* fonte_completa, int linha_num, int coluna_num) {
     const char* p = fonte_completa;
     int linha_atual = 1;
 
-    // 1. Avança até a linha do erro
     while (linha_atual < linha_num && *p != '\0') {
         if (*p == '\n') {
             linha_atual++;
@@ -446,7 +396,6 @@ void imprimir_linha_erro(const char* fonte_completa, int linha_num, int coluna_n
         p++;
     }
 
-    // 2. Imprime a linha do erro
     printf("\nErro linha %d, coluna %d:\n", linha_num, coluna_num);
     printf("  > ");
     while (*p != '\n' && *p != '\0') {
@@ -455,10 +404,9 @@ void imprimir_linha_erro(const char* fonte_completa, int linha_num, int coluna_n
     }
     printf("\n");
 
-    // 3. Imprime a seta (^)
-    printf("    "); // Espaço para " > "
+    printf("    ");
     for (int i = 1; i < coluna_num; i++) {
-        printf(" "); // Avança espaços até a coluna do erro
+        printf(" ");
     }
     printf("^\n");
 }

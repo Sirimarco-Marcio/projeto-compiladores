@@ -1,0 +1,10 @@
+inicio
+  -- Erro 1: Nao declarada
+  int a;
+  a = b + 10; -- ERRO SEMÂNTICO (1)
+
+  -- Erro 3: Parametro invalido
+  -- 'read' espera uma variavel (CAT_VARIAVEL),
+  -- mas 'print' e uma funcao (CAT_FUNCAO).
+  read(print); -- ERRO SEMÂNTICO (2)
+fim

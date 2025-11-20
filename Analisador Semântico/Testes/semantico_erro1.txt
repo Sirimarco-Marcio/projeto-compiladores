@@ -1,0 +1,11 @@
+inicio
+  -- Erro 2: Redeclaracao
+  int contador;
+  float resultado;
+  string contador; -- ERRO SEMÂNTICO (1)
+  
+  -- Erro 4: Atribuicao float -> int
+  resultado = 100.5;
+  contador = resultado; -- ERRO SEMÂNTICO (2)
+  
+fim

@@ -1,0 +1,26 @@
+inicio
+  -- Teste de sucesso completo (sintatico e semantico)
+  int i;
+  float total;
+  string nome;
+
+  read(nome);
+  read(i);
+
+  total = 0.0;
+  
+  -- Teste de coerção de tipo (float = float + int)
+  while (i) {
+    total = total + i; 
+    i = i - 1;       
+    print(total);    
+  }
+
+  -- Teste de condicional com float
+  if (total) {
+     print(nome); 
+  } else {
+     print("Total foi zero."); 
+  }
+
+fim

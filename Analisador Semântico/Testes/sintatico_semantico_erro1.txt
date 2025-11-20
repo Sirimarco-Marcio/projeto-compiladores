@@ -1,0 +1,10 @@
+inicio
+  int a
+  
+  -- ERRO SINTATICO (1) (falta ';')
+  
+  float b;
+  
+  a = 10;
+  b = a + c; -- ERRO SEMÂNTICO (2)
+fim

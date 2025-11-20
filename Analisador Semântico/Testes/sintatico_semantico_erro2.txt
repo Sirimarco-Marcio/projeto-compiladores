@@ -1,0 +1,20 @@
+inicio
+  int a;
+  float b;
+  print(c);  -- ERRO SEMANTICO 2: 'c' nao declarada
+  -- Erro Sintatico 1: ID sem '=' ou '('
+  a 10;
+  
+  -- O parser deve recuperar aqui e continuar
+  b = 2.0;
+  
+  {
+    a = 1;
+
+    -- Erros Semanticos (apos recuperacao)
+    a = b;     -- ERRO SEMANTICO 1: float -> int
+    print(c);  -- ERRO SEMANTICO 2: 'c' nao declarada (Não é pega porque desligou o semantico)
+  
+  -- Erro Sintatico 2: falta '}' no bloco
+  
+fim

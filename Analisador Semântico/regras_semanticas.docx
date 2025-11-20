@@ -1,0 +1,150 @@
+declarar_variavel(ID, T)          // grava tipo T em ID ou gera erro de redeclaração
+tipo_variavel(ID)                 // devolve tipo do ID ou gera erro "não declarado"
+tipo_literal_numero(NUM)          // devolve int ou float conforme presença de '.'
+tipo_binario(op, T1, T2)          // devolve tipo resultante de T1 op T2 (ou erro)
+atribuicao_compatível(Tdest, Tsrc)// verifica se Tsrc pode ser atribuído em Tdest
+checar_condicao(T, KW)            // verifica se expressão de if/while é numérica
+
+<programa> ::= inicio <decls> <comandos> fim
+
+<decls> ::= <decl> <decls>
+          | ε
+
+<decl> ::= <tipo> ID ;
+           { declarar_variavel(ID, tipo.tipo) }
+
+<tipo> ::= int
+           { tipo.tipo = int }
+         | float
+           { tipo.tipo = float }
+         | string
+           { tipo.tipo = string }
+
+<comandos> ::= <comando> <comandos>
+             | ε
+
+<comando> ::= <atribuicao> ;
+            | <chamada> ;
+            | <entrada> ;
+            | <saida> ;
+            | <if_stmt>
+            | <while_stmt>
+            | <bloco>
+
+<atribuicao> ::= ID = <expr>
+                 {
+                    Tdest = tipo_variavel(ID);
+                    Tsrc  = expr.tipo;
+                    if (!atribuicao_compatível(Tdest, Tsrc))
+                        erro_semantico("tipos incompatíveis na atribuição");
+                 }
+
+<chamada> ::= ID ( <args> )
+              { /* opcional: checagem de parâmetros */ }
+
+<args> ::= <expr_list>
+         | ε
+
+<expr_list> ::= <expr> , <expr_list1>
+                 {
+                   expr_list.tipos = concat(expr.tipo, expr_list1.tipos);
+                   expr_list.n     = expr_list1.n + 1;
+                 }
+              | <expr>
+                 {
+                   expr_list.tipos[0] = expr.tipo;
+                   expr_list.n        = 1;
+                 }
+
+<entrada> ::= read ( ID )
+              {
+                 /* ID deve ser variável declarada */
+                 (void) tipo_variavel(ID);
+              }
+
+<saida> ::= print ( <expr> )
+            { /* expr.tipo já verificado internamente */ }
+
+<if_stmt> ::= if ( <expr> ) <comando> <else_opt>
+              {
+                 checar_condicao(expr.tipo, "if");
+              }
+
+<else_opt> ::= else <comando>
+             | ε
+
+<while_stmt> ::= while ( <expr> ) <comando>
+                 {
+                    checar_condicao(expr.tipo, "while");
+                 }
+
+<bloco> ::= { <comandos> }
+
+<expr> ::= <term> <expr_linha>
+           {
+             expr_linha.in = term.tipo;
+             expr.tipo     = expr_linha.tipo;
+           }
+
+<expr_linha> ::= + <term> <expr_linha1>
+                  {
+                     T = tipo_binario('+', expr_linha.in, term.tipo);
+                     expr_linha1.in  = T;
+                     expr_linha.tipo = expr_linha1.tipo;
+                  }
+               | - <term> <expr_linha1>
+                  {
+                     T = tipo_binario('-', expr_linha.in, term.tipo);
+                     expr_linha1.in  = T;
+                     expr_linha.tipo = expr_linha1.tipo;
+                  }
+               | ε
+                  {
+                     expr_linha.tipo = expr_linha.in;
+                  }
+
+<term> ::= <factor> <term_linha>
+           {
+              term_linha.in = factor.tipo;
+              term.tipo     = term_linha.tipo;
+           }
+
+<term_linha> ::= * <factor> <term_linha1>
+                  {
+                     T = tipo_binario('*', term_linha.in, factor.tipo);
+                     term_linha1.in   = T;
+                     term_linha.tipo  = term_linha1.tipo;
+                  }
+               | / <factor> <term_linha1>
+                  {
+                     T = tipo_binario('/', term_linha.in, factor.tipo);
+                     term_linha1.in   = T;
+                     term_linha.tipo  = term_linha1.tipo;
+                  }
+               | ε
+                  {
+                     term_linha.tipo = term_linha.in;
+                  }
+
+<factor> ::= ID
+              {
+                 factor.tipo = tipo_variavel(ID);
+              }
+           | NUMBER
+              {
+                 factor.tipo = tipo_literal_numero(NUMBER);
+              }
+           | STRING
+              {
+                 factor.tipo = string;
+              }
+           | ( <expr> )
+              {
+                 factor.tipo = expr.tipo;
+              }
+           | - <factor1>
+              {
+                 if (!é_numérico(factor1.tipo))
+                     erro_semantico("operador '-' requer operando numérico");
+                 factor.tipo = factor1.tipo;
+              }

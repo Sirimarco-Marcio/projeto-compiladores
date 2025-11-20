@@ -3,14 +3,15 @@
 
 #include <stdio.h>
 
-//TOKENS
+/* ================== TOKENS ================== */
+
 #define TOKEN_BASE 256
 
 #define TOKEN_IDENTIFICADOR    (TOKEN_BASE + 1)
 #define TOKEN_NUMERO           (TOKEN_BASE + 2)
 #define TOKEN_STRING           (TOKEN_BASE + 3)
 
-//Token para palavras chave
+/* palavras-chave */
 #define TOKEN_INICIO           (TOKEN_BASE + 4)
 #define TOKEN_FIM              (TOKEN_BASE + 5)
 #define TOKEN_IF               (TOKEN_BASE + 6)
@@ -19,12 +20,12 @@
 #define TOKEN_READ             (TOKEN_BASE + 9)
 #define TOKEN_PRINT            (TOKEN_BASE + 10)
 
-//Variaveis
+/* tipos */
 #define TOKEN_TIPO_STRING      (TOKEN_BASE + 11)
 #define TOKEN_TIPO_INT         (TOKEN_BASE + 12)
 #define TOKEN_TIPO_FLOAT       (TOKEN_BASE + 13)
 
-//Operadores, pontuacao valor do ASCII como valor de token
+/* símbolos de 1 caractere usam o próprio ASCII como token */
 #define TOKEN_ATRIBUICAO       '='
 #define TOKEN_OPERADOR_SOMA    '+'
 #define TOKEN_OPERADOR_SUB     '-'
@@ -37,22 +38,44 @@
 #define TOKEN_ABRE_CHAVES      '{'
 #define TOKEN_FECHA_CHAVES     '}'
 
-//Tokens para fim de loops
+/* especiais */
 #define TOKEN_EOF              (TOKEN_BASE + 14)
 #define TOKEN_ERRO             (TOKEN_BASE + 15)
 
 #define MAX_ID_LEN 32
-#define INCREMENTO_TABELA 32 //Quantos novos espaços alocar quando a tabela encher
+#define INCREMENTO_TABELA 32
 
-// --- 2. ESTRUTURAS DE DADOS PÚBLICAS ---
+/* ================== TIPOS PARA A TABELA DE SÍMBOLOS ================== */
+
+typedef enum {
+    CAT_VARIAVEL,
+    CAT_FUNCAO_BUILTIN
+} CategoriaSimbolo;
+
+typedef enum {
+    TIPO_INT_S,
+    TIPO_FLOAT_S,
+    TIPO_STRING_S,
+    TIPO_INDEFINIDO,
+    TIPO_ERRO
+} TipoSimbolo;
+
+typedef struct
+{
+    char lexema[MAX_ID_LEN + 1];
+    CategoriaSimbolo categoria;
+    TipoSimbolo tipo;
+} Simbolo;
+
+/* ================== ESTRUTURAS DE TOKEN E LÉXICO ================== */
 
 typedef struct
 {
     int nome_token;
     union
     {
-        int pos_simbolo;
-        char valor_literal[1024];
+        int pos_simbolo;          /* para IDs */
+        char valor_literal[1024]; /* para números e strings */
     } atributo;
     int linha;
     int coluna;
@@ -69,24 +92,24 @@ typedef struct
     int tem_token_devolvido; 
 } AnalisadorLexico;
 
-typedef struct 
-{
-    char lexema[MAX_ID_LEN + 1];
-} Simbolo;
-
-//Mapa de palavras chave 
-//"Dicionario"
+/* mapa de palavras chave */
 typedef struct
 {
     const char* nome;
     int token;
 } PalavraChave;
 
-// --- 3. VARIÁVEIS GLOBAIS (EXTERN) ---
+/* ================== VARIÁVEIS GLOBAIS ================== */
+
 extern AnalisadorLexico g_lexer;
 
+/* tabela de símbolos exposta para o analisador sintático/semântico */
+extern Simbolo* tabela_de_simbolos;
+extern int tamanho_tabela;
+extern int capacidade_tabela;
 
-// --- 4. PROTÓTIPOS DE FUNÇÕES PÚBLICAS ---
+/* ================== PROTÓTIPOS ================== */
+
 Token get_token(void);
 char* ler_arquivo_fonte(const char* caminho);
 void imprimir_linha_erro(const char* fonte_completa, int linha_num, int coluna_num);

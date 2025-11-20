@@ -13,27 +13,25 @@ int main(int argc, char* argv[])
         return 1; 
     }
 
-    // 1. Ler o arquivo
     char* codigo_fonte = ler_arquivo_fonte(argv[1]);
     if (codigo_fonte == NULL) {
-        return 1; // Erro já foi impresso pelo léxico
+        return 1;
     }
 
-    // 2. Chamar a análise (toda a mágica está aqui)
     bool sucesso = analisar(codigo_fonte);
 
-    // 3. Reportar o resultado
     if (sucesso) {
-        printf("\n[SUCESSO] Análise Sintática concluída.\n");
+        printf("\n[SUCESSO] Análise Sintática e Semântica concluída.\n");
     } else {
-        fprintf(stderr, "\n[FALHA] Análise Sintática encontrou erros.\n");
+        fprintf(stderr,
+                "\n[FALHA] Foram encontrados erros sintáticos e/ou semânticos.\n");
     }
 
-    // 4. Limpar
     free(codigo_fonte);
-    
-    // (Lembre-se de liberar a tabela de símbolos aqui)
-    // free(tabela_de_simbolos); // Você precisará expô-la no .h do léxico
 
-    return (sucesso ? 0 : 1); // Retorna 0 em sucesso, 1 em erro
+    if (tabela_de_simbolos != NULL) {
+        free(tabela_de_simbolos);
+    }
+
+    return (sucesso ? 0 : 1);
 }
