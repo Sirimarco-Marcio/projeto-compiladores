@@ -115,5 +115,6 @@ char* ler_arquivo_fonte(const char* caminho);
 void imprimir_linha_erro(const char* fonte_completa, int linha_num, int coluna_num);
 void imprimir_token(Token token);
 void devolver_token(Token token);
+const char* nome_token_legivel(int token);
 
 #endif

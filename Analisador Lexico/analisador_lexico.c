@@ -84,6 +84,47 @@ void devolver_token(Token token) {
 }
 
 /* ================== LÉXICO ================== */
+const char* nome_token_legivel(int token) {
+    switch (token) {
+        /* Tokens Genéricos */
+        case TOKEN_IDENTIFICADOR:    return "IDENTIFICADOR";
+        case TOKEN_NUMERO:           return "NUMERO";
+        case TOKEN_STRING:           return "LITERAL_STRING";
+
+        /* Palavras-chave */
+        case TOKEN_INICIO:           return "'inicio'";
+        case TOKEN_FIM:              return "'fim'";
+        case TOKEN_IF:               return "'if'";
+        case TOKEN_ELSE:             return "'else'";
+        case TOKEN_WHILE:            return "'while'";
+        case TOKEN_READ:             return "'read'";
+        case TOKEN_PRINT:            return "'print'";
+
+        /* Tipos de Dados */
+        case TOKEN_TIPO_STRING:      return "'string'";
+        case TOKEN_TIPO_INT:         return "'int'";
+        case TOKEN_TIPO_FLOAT:       return "'float'";
+
+        /* Símbolos e Operadores (Mapeados para ASCII no header) */
+        case TOKEN_ATRIBUICAO:       return "'='";
+        case TOKEN_OPERADOR_SOMA:    return "'+'";
+        case TOKEN_OPERADOR_SUB:     return "'-'";
+        case TOKEN_OPERADOR_MUL:     return "'*'";
+        case TOKEN_OPERADOR_DIV:     return "'/'";
+        case TOKEN_PONTO_VIRGULA:    return "';'";
+        case TOKEN_VIRGULA:          return "','";
+        case TOKEN_ABRE_PARENTESES:  return "'('";
+        case TOKEN_FECHA_PARENTESES: return "')'";
+        case TOKEN_ABRE_CHAVES:      return "'{'";
+        case TOKEN_FECHA_CHAVES:     return "'}'";
+
+        /* Especiais */
+        case TOKEN_EOF:              return "FIM_DE_ARQUIVO";
+        case TOKEN_ERRO:             return "ERRO_LEXICO";
+
+        default:                     return "TOKEN_DESCONHECIDO";
+    }
+}
 
 Token get_token(void) {
     if (g_lexer.tem_token_devolvido) {

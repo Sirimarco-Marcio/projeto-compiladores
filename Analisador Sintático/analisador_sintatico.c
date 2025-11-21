@@ -72,8 +72,8 @@ static void consumir(int token_esperado, int follow_set[], int size) {
     /* caso de INSERÇÃO: token atual já é um símbolo de sincronização */
     if (in(token_atual.nome_token, follow_set, size)) {
         imprimir_linha_erro(g_lexer.fonte, token_atual.linha, token_atual.coluna);
-        printf("ERRO SINTÁTICO: esperado token %d antes do token %d (recuperação por inserção).\n",
-               token_esperado, token_atual.nome_token);
+            printf("ERRO SINTÁTICO: esperado %s antes do token %s (recuperação por inserção).\n",
+                nome_token_legivel(token_esperado), nome_token_legivel(token_atual.nome_token));
 
         houve_erro_sintatico = true;
         semantica_ativa      = false; /* desativa análise semântica a partir daqui */
@@ -82,14 +82,14 @@ static void consumir(int token_esperado, int follow_set[], int size) {
 
     /* caso geral: modo pânico */
     char msg[100];
-    sprintf(msg, "Esperava token %d", token_esperado);
+    sprintf(msg, "Esperava %s", nome_token_legivel(token_esperado));
     erro_sintatico(msg, follow_set, size);
 }
 
 static void erro_sintatico(const char* mensagem, int follow_set[], int size) {
     imprimir_linha_erro(g_lexer.fonte, token_atual.linha, token_atual.coluna);
     printf("ERRO SINTÁTICO: %s.\n", mensagem);
-    printf("  Token recebido: %d (inesperado)\n", token_atual.nome_token);
+    printf("  Token recebido: %s (inesperado)\n", nome_token_legivel(token_atual.nome_token));
 
     houve_erro_sintatico = true;
     semantica_ativa      = false; /* semântica não deve mais rodar */
@@ -100,7 +100,7 @@ static void erro_sintatico(const char* mensagem, int follow_set[], int size) {
     }
 
     printf("  Iniciando modo pânico... Sincronizando com { ");
-    for (int i = 0; i < size; i++) printf("%d ", follow_set[i]);
+    for (int i = 0; i < size; i++) printf("%s ", nome_token_legivel(follow_set[i]));
     printf("}\n");
 
     /* descarta pelo menos um token */
@@ -113,8 +113,8 @@ static void erro_sintatico(const char* mensagem, int follow_set[], int size) {
     }
 
     if (token_atual.nome_token != TOKEN_EOF) {
-        printf("  Sincronização encontrada. Continuando análise no token %d.\n",
-               token_atual.nome_token);
+        printf("  Sincronização encontrada. Continuando análise no token %s.\n",
+               nome_token_legivel(token_atual.nome_token));
     } else {
         printf("  Fim de arquivo alcançado durante recuperação.\n");
     }
